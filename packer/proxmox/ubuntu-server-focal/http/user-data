@@ -1,0 +1,30 @@
+autoinstall:
+  version: 1
+  locale: en_US
+  keyboard:
+    layout: us
+  ssh:
+    install-server: true
+    allow-pw: true
+    disable_root: true
+    ssh_quiet_keygen: true
+    allow_public_ssh_keys: true
+  packages:
+    - qemu-guest-agent
+    - sudo
+  storage:
+    layout:
+      name: direct
+    swap:
+      size: 0
+  user-data:
+    package_upgrade: false
+    timezone: Europe/Brussels
+    users:
+      - name: edward
+        groups: [adm, sudo]
+        lock-passwd: false
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCoyADxsoyVX4998dINZL+Cgw1RxqjM/aUqRs/21LidsGN8KzUXzO5nnZ0BVP5ZIhYgofcYqDdHS37v17nF7AoIDQeODVFHL3+LlPDPSHRIkc/DtRQUCQHwEjaoeesNuB51HyPGVG0JJLOrbbAzZ5z58Zkit1AC+vwF8Kq4Q1YjU0UiBLcqDjLnO1ua2aSnJllWZYd1S7fCwM6wCuIwZt4aS9T6TrBhgd+KlN/1X5XTvld0WG2jNUxqS9jwOju2DIhjaFBh2rytW4Bp2gbD0KtVXsHsUyRSmLcmEP3NXn7dxi32A2OkSVK8fiUeR9PC0kKvo8L9JgUp/aV1C0vusFheojsG6787zU4MSuqoBsKYtGU2JRDf3X7Ovo4Wq4UlLFWQX8+aWmqwHqc8U/d10Uku5mg3Ahr+0iaaLSrIkLr/dK2eaLsSzdR1cCgQdA8W5qshC/HinT0H3R4WzGz2tNGge33QjU7bm7uPSuxuMK+M1iQd8moPsn6atrpfeRHJ6N0= edward@arch 
