@@ -1,0 +1,6 @@
+- hosts: "*"
+  become: yes
+  tasks:
+    - name: net-tools
+      apt:
+        name: net-tools
