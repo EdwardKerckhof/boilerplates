@@ -1,5 +1,6 @@
-- hosts: "*"
-  become: yes
+- name: install net-tools
+  hosts: linux
+  become: true
   tasks:
     - name: net-tools
       apt:

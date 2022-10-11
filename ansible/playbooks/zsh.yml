@@ -1,9 +1,9 @@
 - name: install latest zsh on all hosts
-  hosts: "*"
+  hosts: linux
+  become: true
   tasks:
     - name: install zsh
       apt:
         name: zsh
         state: present
         update_cache: true
-      become: true

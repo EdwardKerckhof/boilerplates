@@ -1,5 +1,6 @@
-- hosts: "*"
-  become: yes
+- name: add public keys
+  hosts: linux
+  become: true
   tasks:
     - name: add public keys
       ansible.posix.authorized_key:

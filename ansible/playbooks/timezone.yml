@@ -1,6 +1,6 @@
 - name: Set timezone and configure timesyncd
-  hosts: "*"
-  become: yes
+  hosts: linux
+  become: true
   tasks:
     - name: set timezone
       shell: timedatectl set-timezone Europe/Brussels

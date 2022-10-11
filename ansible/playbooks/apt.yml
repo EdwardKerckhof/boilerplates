@@ -1,5 +1,6 @@
-- hosts: "*"
-  become: yes
+- name: update apt
+  hosts: linux
+  become: true
   tasks:
     - name: apt
       apt:

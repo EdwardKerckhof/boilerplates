@@ -1,6 +1,6 @@
-# Ubuntu Server Focal
+# Ubuntu Server Focal Docker
 # ---
-# Packer Template to create an Ubuntu Server (Focal) on Proxmox
+# Packer Template to create an Ubuntu Server (Focal) with Docker on Proxmox
 
 # Variable Definitions
 variable "proxmox_api_url" {
@@ -17,18 +17,20 @@ variable "proxmox_api_token_secret" {
 }
 
 # Resource Definiation for the VM Template
-source "proxmox" "ubuntu-server-focal" {
+source "proxmox" "ubuntu-server-focal-docker" {
  
     # Proxmox Connection Settings
     proxmox_url = "${var.proxmox_api_url}"
     username = "${var.proxmox_api_token_id}"
     token = "${var.proxmox_api_token_secret}"
+    # (Optional) Skip TLS Verification
+    # insecure_skip_tls_verify = true
     
     # VM General Settings
     node = "pve"
-    vm_id = "400"
-    vm_name = "ubuntu-server-focal"
-    template_description = "Ubuntu Server Focal Image"
+    vm_id = "100"
+    vm_name = "ubuntu-server-focal-docker"
+    template_description = "Ubuntu Server Focal Image with Docker pre-installed"
 
     # VM OS Settings
     iso_file = "local:iso/ubuntu-22.04.1-live-server-amd64.iso"
@@ -50,7 +52,7 @@ source "proxmox" "ubuntu-server-focal" {
     }
 
     # VM CPU Settings
-    cores = "4"
+    cores = "1"
     
     # VM Memory Settings
     memory = "2048" 
@@ -79,10 +81,13 @@ source "proxmox" "ubuntu-server-focal" {
 
     # PACKER Autoinstall Settings
     http_directory = "http" 
-    http_port_min = 8802
-    http_port_max = 8802
+    # (Optional) Bind IP Address and Port
+    # http_bind_address = "0.0.0.0"
+    # http_port_min = 8802
+    # http_port_max = 8802
 
     ssh_username = "edward"
+
     ssh_private_key_file = "~/.ssh/id_rsa"
 
     # Raise the timeout, when installation takes longer
@@ -91,8 +96,9 @@ source "proxmox" "ubuntu-server-focal" {
 
 # Build Definition to create the VM Template
 build {
-    name = "ubuntu-server-focal"
-    sources = ["source.proxmox.ubuntu-server-focal"]
+
+    name = "ubuntu-server-focal-docker"
+    sources = ["source.proxmox.ubuntu-server-focal-docker"]
 
     # Provisioning the VM Template for Cloud-Init Integration in Proxmox #1
     provisioner "shell" {
@@ -120,7 +126,14 @@ build {
         inline = [ "sudo cp /tmp/99-pve.cfg /etc/cloud/cloud.cfg.d/99-pve.cfg" ]
     }
 
-    # Add additional provisioning scripts here
-    # ...
+    # Provisioning the VM Template with Docker Installation #4
+    provisioner "shell" {
+        inline = [
+            "sudo apt-get install -y ca-certificates curl gnupg lsb-release",
+            "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
+            "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+            "sudo apt-get -y update",
+            "sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
+        ]
+    }
 }
-
