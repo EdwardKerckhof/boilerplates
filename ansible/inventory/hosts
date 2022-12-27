@@ -1,8 +1,7 @@
 [linux]
-vpn
-pihole
-pihole2
-portainer
+dokku.edwardkerckhof.tech
+traefik.edwardkerckhof.tech
+vaultwarden.edwardkerckhof.tech
 
 [linux:vars]
 ansible_ssh_user=edward

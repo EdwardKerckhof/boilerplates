@@ -1,4 +1,0 @@
-- name: Install nginx on docker
-  hosts: linux
-  become: true
-  tasks:
