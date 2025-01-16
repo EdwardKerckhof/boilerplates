@@ -1,0 +1,24 @@
+---
+- name: Unmount the NFS share
+  shell: "umount {{ nfs_mount_point }}"
+  ignore_errors: true
+
+- name: Remove NFS share from /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "{{ nfs_server }}:{{ nfs_share_path }} {{ nfs_mount_point }} nfs {{ nfs_mount_options }} 0 0"
+    state: absent
+
+- name: Verify NFS share is unmounted
+  shell: "mount | grep '{{ nfs_mount_point }}'"
+  register: unmount_check
+  failed_when: unmount_check.rc == 0
+
+- name: Display unmount verification output
+  debug:
+    msg: "NFS share {{ nfs_mount_point }} successfully unmounted."
+
+- name: Remove NFS share mount point directory
+  file:
+    path: "{{ nfs_mount_point }}"
+    state: absent

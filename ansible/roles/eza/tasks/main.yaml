@@ -1,0 +1,31 @@
+---
+- name: Ensure directory for apt keyrings exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Download eza GPG key
+  get_url:
+    url: "{{ eza_gpg_url }}"
+    dest: /etc/apt/keyrings/gierens.asc
+    mode: "0644"
+
+- name: Convert GPG key to dearmored format
+  command: gpg --dearmor -o /etc/apt/keyrings/gierens.gpg /etc/apt/keyrings/gierens.asc
+  args:
+    creates: /etc/apt/keyrings/gierens.gpg
+
+- name: Add eza repository
+  copy:
+    dest: /etc/apt/sources.list.d/gierens.list
+    content: |
+      deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main
+    mode: "0644"
+
+- name: Install eza
+  apt:
+    name:
+      - eza
+    state: present
+    update_cache: true

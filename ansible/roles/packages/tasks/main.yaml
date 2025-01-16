@@ -1,0 +1,11 @@
+---
+- name: Install additional packages
+  apt:
+    name:
+      - git
+      - neovim
+      - wget
+      - net-tools
+      - python3
+    state: present
+    update_cache: true

@@ -1,0 +1,32 @@
+---
+- name: Ensure docker-compose is installed
+  ansible.builtin.package:
+    name: docker-compose
+    state: present
+
+- name: Ensure Docker service is running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Setup directory for the Portainer agent
+  ansible.builtin.file:
+    path: /home/edward/apps/portainer-agent
+    state: directory
+    mode: "0755"
+    owner: "edward"
+    group: "edward"
+
+- name: Create docker-compose.yml for Portainer agent
+  ansible.builtin.template:
+    src: "templates/docker-compose.yml.j2"
+    dest: "/home/edward/apps/portainer-agent/docker-compose.yml"
+    mode: "0755"
+    owner: "edward"
+    group: "edward"
+
+- name: Deploy Portainer agent using Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: /home/edward/apps/portainer-agent
+    state: present

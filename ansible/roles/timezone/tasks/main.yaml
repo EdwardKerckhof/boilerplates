@@ -1,0 +1,4 @@
+---
+- name: Ensure the timezone is set to Europe/Brussels
+  timezone:
+    name: Europe/Brussels

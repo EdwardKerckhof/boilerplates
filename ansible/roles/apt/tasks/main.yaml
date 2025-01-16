@@ -1,0 +1,10 @@
+---
+- name: Ensure apt is using HTTPS and update tools
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common

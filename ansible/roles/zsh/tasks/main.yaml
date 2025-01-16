@@ -1,0 +1,60 @@
+---
+- name: Install zsh
+  apt:
+    name:
+      - zsh
+    state: present
+    update_cache: true
+
+- name: Install Oh My Zsh
+  shell: |
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  args:
+    creates: /home/edward/.oh-my-zsh
+  become_user: edward
+  environment:
+    HOME: /home/edward
+  tags:
+    - zsh
+
+- name: Clone Powerlevel10k theme into Oh My Zsh custom themes
+  git:
+    repo: https://github.com/romkatv/powerlevel10k.git
+    dest: /home/edward/.oh-my-zsh/custom/themes/powerlevel10k
+    version: master
+  become_user: edward
+  tags:
+    - zsh
+
+- name: Set Zsh as the default shell for Edward
+  user:
+    name: edward
+    shell: "/usr/bin/zsh"
+  tags:
+    - zsh
+
+- name: Clone zsh-autosuggestions plugin
+  git:
+    repo: https://github.com/zsh-users/zsh-autosuggestions.git
+    dest: /home/edward/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+    version: master
+  become_user: edward
+  tags:
+    - zsh
+
+- name: Clone zsh-syntax-highlighting plugin
+  git:
+    repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+    dest: /home/edward/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    version: master
+  become_user: edward
+  tags:
+    - zsh
+
+- name: Update .zshrc with required configurations
+  ansible.builtin.template:
+    src: "templates/.zshrc.j2"
+    dest: "/home/edward/.zshrc"
+    mode: "0755"
+    owner: edward
+    group: edward

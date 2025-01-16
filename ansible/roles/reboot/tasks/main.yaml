@@ -1,0 +1,14 @@
+---
+- name: Check if a reboot is required
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+  tags:
+    - reboot
+
+- name: Reboot the server if updates require it
+  when: reboot_required.stat.exists
+  reboot:
+    msg: "Reboot initiated by Ansible after updates"
+  tags:
+    - reboot

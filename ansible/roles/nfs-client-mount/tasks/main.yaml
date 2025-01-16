@@ -1,0 +1,24 @@
+---
+- name: Ensure NFS share mount point exists
+  file:
+    path: "{{ nfs_mount_point }}"
+    state: directory
+    mode: "0755"
+
+- name: Add NFS share to /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "{{ nfs_server }}:{{ nfs_share_path }} {{ nfs_mount_point }} nfs {{ nfs_mount_options }} 0 0"
+    state: present
+
+- name: Mount all filesystems from /etc/fstab
+  command: mount -a
+
+- name: Verify NFS share is mounted
+  shell: "mount | grep '{{ nfs_mount_point }}'"
+  register: mount_check
+  failed_when: mount_check.rc != 0
+
+- name: Display mount verification output
+  debug:
+    msg: "{{ mount_check.stdout }}"
