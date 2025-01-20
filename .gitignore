@@ -3,3 +3,4 @@
 credentials.auto.tfvars
 terraform.*
 *.log
+.DS_Store

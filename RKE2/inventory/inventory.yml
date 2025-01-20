@@ -1,0 +1,18 @@
+all:
+  children:
+    rke2:
+      children:
+        servers:
+          hosts:
+            server-01:
+              ansible_host: 10.8.8.160
+            server-02:
+              ansible_host: 10.8.8.161
+            server-03:
+              ansible_host: 10.8.8.162
+        agents:
+          hosts:
+            agent-01:
+              ansible_host: 10.8.8.163
+            agent-02:
+              ansible_host: 10.8.8.164

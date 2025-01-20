@@ -1,0 +1,4 @@
+rke2_config_dir: /etc/ransher/rke2
+rke2_server_dir: /var/lib/rancher/rke2/server
+rke2_bin_dir: /var/lib/rancher/rke2/bin
+kubectl_path: /usr/local/bin/kubectl
