@@ -1,21 +1,89 @@
 ---
-# Create a directory to download RKE2 binary to
-- name: Create directory for RKE2 binary
-  ansible.builtin.file:
-    path: "{{ rke2_install_dir }}"
-    state: directory
-    mode: "0755"
+- name: Ensure installation prerequisites
+  block:
+    - name: Create required directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "{{ rke2_install_dir }}"
 
-# Download the RKE2 binary
-- name: Download RKE2 binary
-  ansible.builtin.get_url:
-    url: "{{ rke2_binary_url }}"
-    dest: "{{ rke2_install_dir }}/rke2"
-    mode: "0755"
+    - name: Check if RKE2 is already installed
+      ansible.builtin.stat:
+        path: "{{ rke2_install_dir }}/rke2"
+      register: rke2_binary
 
-# Set permissions on the RKE2 binary
-- name: Set executable permissions on the RKE2 binary
-  ansible.builtin.file:
-    path: "{{ rke2_install_dir }}/rke2"
-    mode: "0755"
-    state: file
+    - name: Get installed RKE2 version
+      ansible.builtin.command: "{{ rke2_install_dir }}/rke2 --version"
+      register: installed_version
+      changed_when: false
+      failed_when: false
+      when: rke2_binary.stat.exists
+  tags: [rke2, install]
+
+- name: Install RKE2 via binary download
+  block:
+    - name: Download RKE2 binary
+      ansible.builtin.get_url:
+        url: "{{ rke2_binary_url }}"
+        dest: "{{ rke2_install_dir }}/rke2"
+        mode: "0755"
+        force: true
+      register: binary_download
+      retries: 3
+      delay: 5
+      until: binary_download is success
+
+    - name: Download RKE2 checksum file
+      ansible.builtin.get_url:
+        url: "{{ rke2_checksum_url }}"
+        dest: /tmp/rke2-sha256sum.txt"
+      register: checksum_download
+      retries: 3
+      delay: 5
+      until: checksum_download is success
+      when: binary_download.changed
+
+    - name: Verify RKE2 binary checksum
+      ansible.builtin.shell: |
+        cd {{ rke2_install_dir }}
+        grep "rke2.{{ os }}-{{ arch }}" /tmp/rke2-sha256sum.txt | sha256sum --check
+      register: checksum_verify
+      changed_when: false
+      failed_when: checksum_verify.rc != 0
+      when: binary_download.changed
+
+    - name: Install RKE2 binary
+      ansible.builtin.copy:
+        src: "{{ rke2_temp_dir }}/rke2"
+        dest: "{{ rke2_install_dir }}/rke2"
+        mode: "0755"
+        remote_src: true
+      register: binary_install
+      notify: Cleanup installation files
+  when: not rke2_binary.stat.exists or
+    (installed_version.stdout is defined and rke2_version not in installed_version.stdout)
+  tags: [rke2, install, binary]
+
+- name: Verify installation
+  block:
+    - name: Verify RKE2 binary exists
+      ansible.builtin.stat:
+        path: "{{ rke2_install_dir }}/rke2"
+      register: rke2_verify
+
+    - name: Verify RKE2 version
+      ansible.builtin.command: "{{ rke2_install_dir }}/rke2 --version"
+      register: version_verify
+      changed_when: false
+      failed_when:
+        - version_verify.rc != 0
+        - rke2_version not in version_verify.stdout
+
+    - name: Set RKE2 binary permissions
+      ansible.builtin.file:
+        path: "{{ rke2_install_dir }}/rke2"
+        mode: "0755"
+        state: file
+  tags: [rke2, verify]

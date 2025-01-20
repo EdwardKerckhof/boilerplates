@@ -1,40 +1,62 @@
 ---
-- name: Ensure the timezone is set
-  timezone:
-    name: "{{ timezone }}"
+- name: System Configuration Tasks
+  block:
+    - name: Set system timezone
+      ansible.builtin.timezone:
+        name: "{{ timezone }}"
+      register: timezone_result
+      failed_when: timezone_result.failed and not ansible_check_mode
 
-- name: Install qemu-guest-agent
-  apt:
-    name:
-      - qemu-guest-agent
-    state: present
-    update_cache: true
+    - name: Configure system kernel parameters
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: true
+        sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+      loop:
+        - { key: "net.ipv4.ip_forward", value: "1" }
+        - { key: "net.ipv6.conf.all.forwarding", value: "1" }
+      register: sysctl_result
+      failed_when: sysctl_result.failed and not ansible_check_mode
+      tags: ["sysctl", "kernel"]
 
-- name: Ensure qemu-guest-agent is enabled and running
-  systemd:
-    name: qemu-guest-agent
-    enabled: yes
-    state: started
+- name: Package Management Tasks
+  block:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      register: apt_update
+      retries: 3
+      delay: 5
+      until: apt_update is success
 
-- name: Install iptables
-  apt:
-    name:
-      - iptables
-    state: present
-    update_cache: true
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - qemu-guest-agent
+          - iptables
+          - apt-transport-https
+          - ca-certificates
+          - curl
+        state: present
+      register: pkg_install
+      retries: 3
+      delay: 5
+      until: pkg_install is success
 
-- name: Enable IPv4 forwarding
-  ansible.posix.sysctl:
-    name: net.ipv4.ip_forward
-    value: "1"
-    state: present
-    reload: true
-  tags: sysctl
-
-- name: Enable IPv6 forwarding
-  ansible.posix.sysctl:
-    name: net.ipv6.conf.all.forwarding
-    value: "1"
-    state: present
-    reload: true
-  tags: sysctl
+- name: Service Management Tasks
+  block:
+    - name: Ensure required services are enabled and running
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      loop:
+        - qemu-guest-agent
+      register: service_status
+      failed_when:
+        - service_status.failed
+        - "'could not find' not in service_status.msg"
