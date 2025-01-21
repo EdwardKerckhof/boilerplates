@@ -7,38 +7,31 @@
   roles:
     - prepare-nodes
     - rke2-download
-#
-# # Deploys Kube-VIP for high availability
-# - name: Deploy Kube VIP
-#   hosts: servers
-#   gather_facts: true
-#   roles:
-#     - kube-vip
-#
-# # Sets up RKE2 on control plane and worker nodes
-# - name: Prepare RKE2 on Servers and Agents
-#   hosts: servers,agents
-#   gather_facts: true
-#   roles:
-#     - rke2-prepare
-#
-# # Adds additional control plane nodes
-# - name: Add additional RKE2 Servers
-#   hosts: servers
-#   gather_facts: true
-#   roles:
-#     - add-server
-#
-# # Adds worker nodes to the cluster
-# - name: Add additional RKE2 Agents
-#   hosts: agents
-#   gather_facts: true
-#   roles:
-#     - add-agent
-#
-# # Applies final manifests, including MetalLB configuration
-# - name: Apply manifests after cluster is created
-#   hosts: servers
-#   gather_facts: true
-#   roles:
-#     - apply-manifests
+
+# Deploys Kube-VIP for high availability
+- name: Deploy Kube VIP
+  hosts: servers
+  gather_facts: true
+  roles:
+    - kube-vip
+
+# Sets up RKE2 on control plane and worker nodes
+- name: Prepare RKE2 on Servers and Agents
+  hosts: servers,agents
+  gather_facts: true
+  roles:
+    - rke2-prepare
+
+# Adds additional control plane nodes
+- name: Add additional RKE2 Servers
+  hosts: servers
+  gather_facts: true
+  roles:
+    - add-server
+
+# Adds worker nodes to the cluster
+- name: Add additional RKE2 Agents
+  hosts: agents
+  gather_facts: true
+  roles:
+    - add-agent

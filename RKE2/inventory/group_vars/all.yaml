@@ -4,9 +4,7 @@ arch: "amd64"
 
 vip: 10.8.8.50
 
-metallb_version: v0.14.9
-lb_range: 10.8.8.60-10.8.8.90
-lb_pool_name: first-pool
+ip_range: 10.8.8.60-10.8.8.90
 
 ansible_user: edward
 ansible_become: true
