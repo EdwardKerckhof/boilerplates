@@ -4,9 +4,3 @@ ansible_become: true
 ansible_become_method: sudo
 
 timezone: "Europe/Brussels"
-################################################################################
-# options to change default values
-# kube_vip_version: "v0.8.9"
-# vip_interface: "eth0"
-# rke2_version: "v1.29.4+rke2r1"
-# rke2_install_dir: "/usr/local/bin"
