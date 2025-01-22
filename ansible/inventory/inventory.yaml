@@ -1,8 +1,0 @@
----
-ubuntu:
-  hosts:
-    test-terraform:
-      ansible_host: 10.8.8.135
-      ansible_user: "edward"
-      ansible_become: true
-      ansible_become_method: sudo

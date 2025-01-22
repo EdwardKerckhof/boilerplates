@@ -1,0 +1,15 @@
+---
+- name: Setup a new Ubuntu VM with required packages and configs
+  hosts: ubuntu_server_setup
+  gather_facts: true
+  become: true
+  roles:
+    - ubuntu-server-setup/timezone
+    - ubuntu-server-setup/apt
+    - ubuntu-server-setup/qemu-guest-agent
+    - ubuntu-server-setup/docker
+    - ubuntu-server-setup/eza
+    - ubuntu-server-setup/packages
+    - ubuntu-server-setup/portainer-agent
+    - ubuntu-server-setup/zsh
+    - ubuntu-server-setup/reboot

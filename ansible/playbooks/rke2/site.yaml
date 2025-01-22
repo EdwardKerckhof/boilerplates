@@ -1,37 +1,37 @@
 ---
 # Bootstraps the first server and prepares nodes
 - name: Prepare all nodes
-  hosts: rke2
+  hosts: rke2_cluster
   gather_facts: false
   become: true
   roles:
-    - prepare-nodes
-    - rke2-download
+    - rke2/prepare-nodes
+    - rke2/rke2-download
 
 # Deploys Kube-VIP for high availability
 - name: Deploy Kube VIP
-  hosts: servers
+  hosts: rke2_servers
   gather_facts: true
   roles:
-    - kube-vip
+    - rke2/kube-vip
 
 # Sets up RKE2 on control plane and worker nodes
 - name: Prepare RKE2 on Servers and Agents
-  hosts: servers,agents
+  hosts: rke2_servers,rke2_agents
   gather_facts: true
   roles:
-    - rke2-prepare
+    - rke2/rke2-prepare
 
 # Adds additional control plane nodes
 - name: Add additional RKE2 Servers
-  hosts: servers
+  hosts: rke2_servers
   gather_facts: true
   roles:
-    - add-server
+    - rke2/add-server
 
 # Adds worker nodes to the cluster
 - name: Add additional RKE2 Agents
-  hosts: agents
+  hosts: rke2_agents
   gather_facts: true
   roles:
-    - add-agent
+    - rke2/add-agent

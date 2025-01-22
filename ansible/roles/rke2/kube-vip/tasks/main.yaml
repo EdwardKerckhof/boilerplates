@@ -5,7 +5,7 @@
     path: "/var/lib/rancher/rke2/server/manifests"
     state: directory
     mode: "0755"
-  when: inventory_hostname in groups['servers']
+  when: inventory_hostname in groups['rke2_servers']
 
 # Copy kube-vip to server 1 manifest folder for auto deployment at bootstrap
 - name: Deploy Kube VIP Configuration
@@ -15,4 +15,4 @@
     owner: root
     group: root
     mode: "0644"
-  when: inventory_hostname == groups['servers'][0]
+  when: inventory_hostname == groups['rke2_servers'][0]
