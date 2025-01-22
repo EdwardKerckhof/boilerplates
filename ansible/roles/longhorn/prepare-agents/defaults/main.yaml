@@ -1,0 +1,7 @@
+---
+longhorn_required_packages:
+  - open-iscsi
+  - nfs-common
+  - bash
+  - curl
+  - grep

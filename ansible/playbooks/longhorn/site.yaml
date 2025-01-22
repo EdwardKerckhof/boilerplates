@@ -1,0 +1,8 @@
+---
+- name: Prepare agent nodes
+  hosts: rke2_agents
+  become: true
+  roles:
+    - longhorn/prepare-agents
+    - longhorn/configure-labels
+    - longhorn/deploy

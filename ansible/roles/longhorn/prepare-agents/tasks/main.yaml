@@ -1,0 +1,28 @@
+---
+- name: Setup Longhorn requirements
+  block:
+    - name: Install required packages
+      package:
+        name: "{{ longhorn_required_packages }}"
+        state: present
+
+    - name: Enable and start the iSCSI service
+      systemd:
+        name: iscsid
+        enabled: true
+        state: started
+
+    - name: Ensure iscsi_tcp kernel module is loaded
+      ansible.builtin.command: modprobe iscsi_tcp
+
+    - name: Persist iscsi_tcp module on reboot
+      lineinfile:
+        path: /etc/modules
+        line: iscsi_tcp
+        state: present
+
+    - name: Stop the multipathd service
+      systemd:
+        name: multipathd
+        enabled: false
+        state: stopped

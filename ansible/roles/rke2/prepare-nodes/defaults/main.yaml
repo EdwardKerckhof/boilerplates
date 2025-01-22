@@ -1,0 +1,9 @@
+---
+required_packages:
+  - open-iscsi
+  - nfs-common
+  - bash
+  - curl
+  - grep
+  - python3-kubernetes
+  - python3-openshift

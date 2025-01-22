@@ -1,0 +1,25 @@
+- name: Deploy Longhorn using kubectl
+  block:
+    - name: Check if Longhorn namespace exists
+      delegate_to: "{{ groups['rke2_servers'][0] }}"
+      ansible.builtin.command:
+        cmd: kubectl get namespace longhorn-system --kubeconfig /etc/rancher/rke2/rke2.yaml
+      register: namespace_check
+      failed_when: namespace_check.rc != 0 and 'Error from server (NotFound)' not in namespace_check.stderr
+      changed_when: false
+
+    - name: Apply Longhorn manifest
+      delegate_to: "{{ groups['rke2_servers'][0] }}"
+      kubernetes.core.k8s:
+        state: present
+        template: longhorn.yaml.j2
+        kubeconfig: /etc/rancher/rke2/rke2.yaml
+      when: namespace_check.rc != 0
+
+    - name: Wait for Longhorn namespace to be ready
+      delegate_to: "{{ groups['rke2_servers'][0] }}"
+      ansible.builtin.command:
+        cmd: kubectl wait --for=condition=ready pods --all -n longhorn-system --timeout=300s --kubeconfig /etc/rancher/rke2/rke2.yaml
+      when: namespace_check.rc != 0
+      register: wait_result
+      failed_when: wait_result.rc != 0

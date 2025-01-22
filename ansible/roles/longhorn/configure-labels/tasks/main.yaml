@@ -1,0 +1,25 @@
+---
+# We add "longhorn=true" to our agent configs so that when we deploy Longhorn,
+# It will be deployed on our agent nodes (workers) and not our servers (masters)
+- name: Configure Longhorn node labels
+  block:
+    - name: Ensure RKE2 agent config directory exists
+      file:
+        path: /etc/rancher/rke2
+        state: directory
+
+    - name: Ensure the "node-label" key exists
+      lineinfile:
+        path: /etc/rancher/rke2/config.yaml
+        regexp: "^node-label:"
+        line: "node-label:"
+        state: present
+
+    - name: Add "longhorn=true" to node-label
+      lineinfile:
+        path: /etc/rancher/rke2/config.yaml
+        regexp: '^\s*- "longhorn=true"$'
+        line: '  - "longhorn=true"'
+        state: present
+        insertafter: "^node-label:"
+      notify: restart rke2-agent
