@@ -10,3 +10,9 @@
   become: true
   roles:
     - traefik/deploy
+
+- name: Deploy Traefik Dashboard
+  hosts: rke2_servers
+  become: true
+  roles:
+    - traefik/enable-dashboard
