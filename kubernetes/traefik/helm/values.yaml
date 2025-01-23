@@ -1,0 +1,73 @@
+---
+image:
+  registry: docker.io
+  repository: traefik
+  tag: v3.3.2
+  pullPolicy: IfNotPresent
+
+globalArguments:
+  - "--global.sendanonymoususage=false"
+  - "--global.checknewversion=false"
+
+additionalArguments:
+  - "--serversTransport.insecureSkipVerify=true"
+  - "--log.level=INFO"
+
+deployment:
+  enabled: true
+  replicas: 2 # match with number of agents
+  annotations: {}
+  podAnnotations: {}
+  additionalContainers: []
+  initContainers: []
+
+nodeSelector:
+  agent: "true" # add these labels to your agent nodes before running
+
+ports:
+  web:
+    redirections:
+      to: websecure
+      priority: 10
+      schema: https
+      permanent: true
+  websecure:
+    tls:
+      enabled: true
+
+# --> (Optional) Securely expose the Traefik dashboard...
+# ingressRoute:
+#   dashboard:
+#     enabled: true
+#     entryPoints:
+#       - websecure
+#     matchRule: Host(`your-traefik-dashboard-fqdn`)  # <-- Replace with your FQDN
+#     middlewares:
+#       - name: traefik-web-ui-middleware  # <-- Replace with your authentication middleware
+#     tls:
+#       secretName: traefik-web-ui-tls  # <-- Replace with your TLS secret name
+# <--
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    ingressClass: traefik-external
+    allowExternalNameServices: true
+  kubernetesIngress:
+    enabled: true
+    allowExternalNameServices: true
+    publishedService:
+      enabled: false
+
+rbac:
+  enabled: true
+
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations: {}
+  labels: {}
+  spec:
+    loadBalancerIP: 10.8.8.70 # this should be an IP in the Kube-VIP range
+  loadBalancerSourceRanges: []
+  externalIPs: []

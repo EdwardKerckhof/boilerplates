@@ -3,11 +3,10 @@
   hosts: rke2_agents
   become: true
   roles:
-    - longhorn/prepare-agents
-    - longhorn/configure-labels
+    - traefik/configure-labels
 
-- name: Deploy Longhorn to agent nodes
+- name: Deploy Traefik to agent nodes
   hosts: rke2_servers
   become: true
   roles:
-    - longhorn/deploy
+    - traefik/deploy
