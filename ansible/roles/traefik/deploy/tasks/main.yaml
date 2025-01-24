@@ -38,7 +38,6 @@
   template:
     src: values.yaml.j2
     dest: /tmp/traefik-values.yaml
-  when: namespace_check.rc != 0
 
 - name: Deploy Traefik via Helm
   delegate_to: "{{ groups['rke2_servers'][0] }}"
@@ -55,7 +54,6 @@
     values:
       service:
         type: LoadBalancer
-  when: namespace_check.rc != 0
 
 - name: Render Middleware YAML file
   delegate_to: "{{ groups['rke2_servers'][0] }}"
@@ -63,10 +61,8 @@
   template:
     src: default-headers-middleware.yaml.j2
     dest: /tmp/middleware.yaml
-  when: namespace_check.rc != 0
 
 - name: Apply Middleware using kubectl
   delegate_to: "{{ groups['rke2_servers'][0] }}"
   run_once: true
   command: kubectl apply -f /tmp/middleware.yaml --kubeconfig /etc/rancher/rke2/rke2.yaml
-  when: namespace_check.rc != 0
