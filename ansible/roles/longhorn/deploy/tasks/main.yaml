@@ -1,25 +1,39 @@
-- name: Deploy Longhorn using kubectl
+---
+- name: Deploy and configure Longhorn
+  delegate_to: "{{ groups['rke2_servers'][0] }}"
+  run_once: true
   block:
-    - name: Check if Longhorn namespace exists
-      delegate_to: "{{ groups['rke2_servers'][0] }}"
-      ansible.builtin.command:
-        cmd: kubectl get namespace longhorn-system --kubeconfig /etc/rancher/rke2/rke2.yaml
-      register: namespace_check
-      failed_when: namespace_check.rc != 0 and 'Error from server (NotFound)' not in namespace_check.stderr
-      changed_when: false
-
-    - name: Apply Longhorn manifest
-      delegate_to: "{{ groups['rke2_servers'][0] }}"
+    - name: Create Longhorn namespace
       kubernetes.core.k8s:
+        name: "{{ longhorn_config.namespace }}"
+        api_version: v1
+        kind: Namespace
         state: present
-        template: longhorn.yaml.j2
-        kubeconfig: /etc/rancher/rke2/rke2.yaml
-      when: namespace_check.rc != 0
+        kubeconfig: "{{ longhorn_kubernetes_config.path }}"
+      tags:
+        - longhorn
+        - namespace
 
-    - name: Wait for Longhorn namespace to be ready
-      delegate_to: "{{ groups['rke2_servers'][0] }}"
-      ansible.builtin.command:
-        cmd: kubectl wait --for=condition=ready pods --all -n longhorn-system --timeout=300s --kubeconfig /etc/rancher/rke2/rke2.yaml
-      when: namespace_check.rc != 0
-      register: wait_result
-      failed_when: wait_result.rc != 0
+    - name: Template Longhorn values
+      ansible.builtin.template:
+        src: templates/longhorn-values.yaml.j2
+        dest: /tmp/longhorn-values.yaml
+        mode: "0644"
+      tags:
+        - longhorn
+        - deploy
+
+    - name: Deploy Longhorn
+      kubernetes.core.helm:
+        name: longhorn
+        chart_ref: longhorn/longhorn
+        release_namespace: "{{ longhorn_config.namespace }}"
+        create_namespace: true
+        wait: true
+        wait_timeout: "{{ longhorn_config.wait_timeout }}"
+        values_files:
+          - /tmp/longhorn-values.yaml
+        kubeconfig: "{{ longhorn_kubernetes_config.path }}"
+      tags:
+        - longhorn
+        - deploy

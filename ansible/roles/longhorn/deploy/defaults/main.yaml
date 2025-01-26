@@ -1,0 +1,10 @@
+---
+longhorn_config:
+  namespace: longhorn-system
+  version: v1.6.1
+  wait_timeout: 300 # seconds
+  node_selector: "longhorn=true"
+  priority_class: longhorn-critical
+
+longhorn_kubernetes_config:
+  path: /etc/rancher/rke2/rke2.yaml

@@ -1,0 +1,15 @@
+---
+traefik_config:
+  namespace: traefik
+  helm:
+    repo_name: traefik
+    repo_url: https://traefik.github.io/charts
+    chart_name: traefik/traefik
+  wait_timeout: 300 # seconds
+
+traefik_kubernetes_config:
+  path: /etc/rancher/rke2/rke2.yaml
+
+traefik_helm_config:
+  binary_path: /usr/local/bin/helm
+  install_script_url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3

@@ -1,68 +1,71 @@
 ---
-- name: Check if Traefik namespace exists
-  delegate_to: "{{ groups['rke2_servers'][0] }}"
-  run_once: true
-  ansible.builtin.command:
-    cmd: kubectl get namespace traefik --kubeconfig /etc/rancher/rke2/rke2.yaml
-  register: namespace_check
-  failed_when: namespace_check.rc != 0 and 'Error from server (NotFound)' not in namespace_check.stderr
-  changed_when: false
-
-- name: Install Helm
+- name: Deploy and configure Traefik
   delegate_to: "{{ groups['rke2_servers'][0] }}"
   run_once: true
   block:
-    - name: Download Helm installation script
-      get_url:
-        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-        dest: /tmp/get_helm.sh
+    - name: Install Helm
+      ansible.builtin.get_url:
+        url: "{{ traefik_helm_config.install_script_url }}"
+        dest: /tmp/get-helm.sh
         mode: "0700"
+      tags:
+        - traefik
+        - helm
 
-    - name: Execute Helm installation script
-      command: /tmp/get_helm.sh
-      args:
-        creates: /usr/local/bin/helm
-  when: namespace_check.rc != 0
+    - name: Execute Helm installer
+      ansible.builtin.command:
+        cmd: /tmp/get-helm.sh
+        creates: "{{ traefik_helm_config.binary_path }}"
+      tags:
+        - traefik
+        - helm
 
-- name: Add Traefik Helm repository
-  delegate_to: "{{ groups['rke2_servers'][0] }}"
-  run_once: true
-  kubernetes.core.helm_repository:
-    name: traefik
-    repo_url: https://traefik.github.io/charts
-  when: namespace_check.rc != 0
+    - name: Add Traefik Helm repository
+      kubernetes.core.helm_repository:
+        name: "{{ traefik_config.helm.repo_name }}"
+        repo_url: "{{ traefik_config.helm.repo_url }}"
+      tags:
+        - traefik
+        - helm
 
-- name: Template custom values file
-  delegate_to: "{{ groups['rke2_servers'][0] }}"
-  run_once: true
-  template:
-    src: values.yaml.j2
-    dest: /tmp/traefik-values.yaml
+    - name: Template Traefik values
+      ansible.builtin.template:
+        src: templates/traefik-values.yaml.j2
+        dest: /tmp/traefik-values.yaml
+        mode: "0644"
+      tags:
+        - traefik
+        - deploy
 
-- name: Deploy Traefik via Helm
-  delegate_to: "{{ groups['rke2_servers'][0] }}"
-  run_once: true
-  kubernetes.core.helm:
-    name: traefik
-    chart_ref: traefik/traefik
-    release_namespace: traefik
-    create_namespace: true
-    state: present
-    atomic: true
-    kubeconfig: /etc/rancher/rke2/rke2.yaml
-    values_files: ["/tmp/traefik-values.yaml"]
-    values:
-      service:
-        type: LoadBalancer
+    - name: Deploy Traefik
+      kubernetes.core.helm:
+        name: traefik
+        chart_ref: "{{ traefik_config.helm.chart_name }}"
+        release_namespace: "{{ traefik_config.namespace }}"
+        create_namespace: true
+        wait: true
+        wait_timeout: "{{ traefik_config.wait_timeout }}"
+        kubeconfig: "{{ traefik_kubernetes_config.path }}"
+        values_files:
+          - /tmp/traefik-values.yaml
+      tags:
+        - traefik
+        - deploy
 
-- name: Render Middleware YAML file
-  delegate_to: "{{ groups['rke2_servers'][0] }}"
-  run_once: true
-  template:
-    src: default-headers-middleware.yaml.j2
-    dest: /tmp/middleware.yaml
+    - name: Template default middleware
+      ansible.builtin.template:
+        src: templates/default-headers-middleware.yaml.j2
+        dest: /tmp/default-headers-middleware.yaml
+        mode: "0644"
+      tags:
+        - traefik
+        - middleware
 
-- name: Apply Middleware using kubectl
-  delegate_to: "{{ groups['rke2_servers'][0] }}"
-  run_once: true
-  command: kubectl apply -f /tmp/middleware.yaml --kubeconfig /etc/rancher/rke2/rke2.yaml
+    - name: Apply default middleware
+      kubernetes.core.k8s:
+        state: present
+        src: /tmp/default-headers-middleware.yaml
+        kubeconfig: "{{ traefik_kubernetes_config.path }}"
+      tags:
+        - traefik
+        - middleware
