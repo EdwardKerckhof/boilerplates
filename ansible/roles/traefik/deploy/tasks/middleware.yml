@@ -1,0 +1,17 @@
+---
+- name: Configure default middleware
+  delegate_to: "{{ groups['rke2_servers'][0] }}"
+  run_once: true
+  block:
+    - name: Template default middleware
+      ansible.builtin.template:
+        src: templates/default-headers-middleware.yaml.j2
+        dest: /tmp/default-headers-middleware.yaml
+        mode: '0644'
+      notify: cleanup temporary files
+
+    - name: Apply default middleware
+      kubernetes.core.k8s:
+        state: present
+        src: /tmp/default-headers-middleware.yaml
+        kubeconfig: "{{ traefik_kubernetes_config.path }}"

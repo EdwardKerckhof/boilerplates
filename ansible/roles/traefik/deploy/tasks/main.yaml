@@ -3,76 +3,14 @@
   ansible.builtin.import_tasks: preflight.yml
   tags: ["traefik", "preflight"]
 
-- name: Deploy and configure Traefik
-  delegate_to: "{{ groups['rke2_servers'][0] }}"
-  run_once: true
-  block:
-    - name: Install Helm
-      ansible.builtin.get_url:
-        url: "{{ traefik_helm_config.install_script_url }}"
-        dest: /tmp/get-helm.sh
-        mode: "0700"
-      notify: cleanup temporary files
-      tags:
-        - traefik
-        - helm
+- name: Setup Helm
+  ansible.builtin.import_tasks: helm.yml
+  tags: ["traefik", "helm"]
 
-    - name: Execute Helm installer
-      ansible.builtin.command:
-        cmd: /tmp/get-helm.sh
-        creates: "{{ traefik_helm_config.binary_path }}"
-      tags:
-        - traefik
-        - helm
+- name: Deploy Traefik
+  ansible.builtin.import_tasks: deploy.yml
+  tags: ["traefik", "deploy"]
 
-    - name: Add Traefik Helm repository
-      kubernetes.core.helm_repository:
-        name: "{{ traefik_config.helm.repo_name }}"
-        repo_url: "{{ traefik_config.helm.repo_url }}"
-      tags:
-        - traefik
-        - helm
-
-    - name: Template Traefik values
-      ansible.builtin.template:
-        src: templates/traefik-values.yaml.j2
-        dest: /tmp/traefik-values.yaml
-        mode: "0644"
-      notify: cleanup temporary files
-      tags:
-        - traefik
-        - deploy
-
-    - name: Deploy Traefik
-      kubernetes.core.helm:
-        name: traefik
-        chart_ref: "{{ traefik_config.helm.chart_name }}"
-        release_namespace: "{{ traefik_config.namespace }}"
-        create_namespace: true
-        wait: true
-        wait_timeout: "{{ traefik_config.wait_timeout }}"
-        kubeconfig: "{{ traefik_kubernetes_config.path }}"
-        values_files:
-          - /tmp/traefik-values.yaml
-      tags:
-        - traefik
-        - deploy
-
-    - name: Template default middleware
-      ansible.builtin.template:
-        src: templates/default-headers-middleware.yaml.j2
-        dest: /tmp/default-headers-middleware.yaml
-        mode: "0644"
-      notify: cleanup temporary files
-      tags:
-        - traefik
-        - middleware
-
-    - name: Apply default middleware
-      kubernetes.core.k8s:
-        state: present
-        src: /tmp/default-headers-middleware.yaml
-        kubeconfig: "{{ traefik_kubernetes_config.path }}"
-      tags:
-        - traefik
-        - middleware
+- name: Configure middleware
+  ansible.builtin.import_tasks: middleware.yml
+  tags: ["traefik", "middleware"]
