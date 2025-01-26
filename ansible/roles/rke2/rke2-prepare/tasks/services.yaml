@@ -1,0 +1,39 @@
+---
+- name: Deploy RKE2 server Configuration
+  ansible.builtin.template:
+    src: templates/rke2-server-config.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname in groups['rke2_servers']
+
+- name: Create systemd service file for RKE2 server
+  ansible.builtin.template:
+    src: templates/rke2-server.service.j2
+    dest: /etc/systemd/system/rke2-server.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname in groups['rke2_servers']
+
+- name: Create systemd service file for RKE2 agent
+  ansible.builtin.template:
+    src: templates/rke2-agent.service.j2
+    dest: /etc/systemd/system/rke2-agent.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname in groups['rke2_agents']
+
+- name: Trigger RKE2 server restart for other servers
+  ansible.builtin.debug:
+    msg: "Triggering RKE2 server restart"
+  when: inventory_hostname in groups['rke2_servers'][1:]
+  notify: Restart RKE2 server
+
+- name: Trigger RKE2 agent restart
+  ansible.builtin.debug:
+    msg: "Triggering RKE2 agent restart"
+  when: inventory_hostname in groups['rke2_agents']
+  notify: Restart RKE2 agent

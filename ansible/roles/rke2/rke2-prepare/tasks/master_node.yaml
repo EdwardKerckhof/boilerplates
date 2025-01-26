@@ -1,0 +1,15 @@
+---
+- name: Ensure first RKE2 server is enabled and running
+  ansible.builtin.systemd:
+    name: rke2-server
+    enabled: true
+    state: restarted
+    daemon_reload: true
+
+- name: Wait for node-token
+  ansible.builtin.wait_for:
+    path: /var/lib/rancher/rke2/server/node-token
+
+- name: Wait for kubectl
+  ansible.builtin.wait_for:
+    path: /var/lib/rancher/rke2/bin/kubectl

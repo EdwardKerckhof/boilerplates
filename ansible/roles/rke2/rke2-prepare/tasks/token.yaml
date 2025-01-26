@@ -1,0 +1,28 @@
+---
+- name: Register node-token file access mode
+  ansible.builtin.stat:
+    path: /var/lib/rancher/rke2/server
+  register: p
+
+- name: Change file access for node-token
+  ansible.builtin.file:
+    path: /var/lib/rancher/rke2/server
+    mode: "g+rx,o+rx"
+  when: inventory_hostname == groups['rke2_servers'][0]
+
+- name: Fetch the token from the first server node
+  ansible.builtin.slurp:
+    src: /var/lib/rancher/rke2/server/token
+  register: rke2_token
+  when: inventory_hostname == groups['rke2_servers'][0]
+  run_once: true
+
+- name: Save Master node-token for later
+  ansible.builtin.set_fact:
+    token: "{{ rke2_token.content | b64decode | regex_replace('\n', '') }}"
+
+- name: Restore node-token file access
+  ansible.builtin.file:
+    path: /var/lib/rancher/rke2/server
+    mode: "{{ p.stat.mode }}"
+  when: inventory_hostname == groups['rke2_servers'][0]
