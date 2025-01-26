@@ -4,3 +4,8 @@
   become: true
   roles:
     - cert-manager/deploy
+# - name: Enable Production Cert Issuer
+#   hosts: rke2_servers
+#   become: true
+#   roles:
+#     - cert-manager/enable-issuer
