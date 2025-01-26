@@ -1,0 +1,27 @@
+---
+- name: Add Cert-Manager Helm repository
+  delegate_to: "{{ groups['rke2_servers'][0] }}"
+  run_once: true
+  kubernetes.core.helm_repository:
+    name: cert-manager
+    repo_url: https://charts.jetstack.io
+
+- name: Template custom values file
+  delegate_to: "{{ groups['rke2_servers'][0] }}"
+  run_once: true
+  template:
+    src: values.yaml.j2
+    dest: /tmp/cert-manager-values.yaml
+
+- name: Deploy Cert-Manager via Helm
+  delegate_to: "{{ groups['rke2_servers'][0] }}"
+  run_once: true
+  kubernetes.core.helm:
+    name: cert-manager
+    chart_ref: cert-manager/cert-manager
+    release_namespace: cert-manager
+    create_namespace: true
+    state: present
+    atomic: true
+    kubeconfig: /etc/rancher/rke2/rke2.yaml
+    values_files: ["/tmp/cert-manager-values.yaml"]
