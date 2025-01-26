@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Edward Kerckhof
+  description: Deploys Traefik ingress controller using Helm
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+
+  galaxy_tags:
+    - kubernetes
+    - ingress
+    - traefik
+    - helm
+
+dependencies:
+  - role: configure-labels

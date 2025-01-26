@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: Edward Kerckhof
+  description: Prepares RKE2 configuration and services
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+
+  galaxy_tags:
+    - kubernetes
+    - rke2
+    - cluster
+
+dependencies:
+  - role: prepare-nodes

@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Edward Kerckhof
+  description: Deploys Longhorn storage system to Kubernetes cluster
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+
+  galaxy_tags:
+    - kubernetes
+    - storage
+    - longhorn
+
+dependencies:
+  - role: prepare-agents
+  - role: configure-labels

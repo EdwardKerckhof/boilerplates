@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Edward Kerckhof
+  description: Configures node labels for Traefik deployment
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+
+  galaxy_tags:
+    - kubernetes
+    - traefik
+    - labels
+
+dependencies: []
