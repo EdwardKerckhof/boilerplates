@@ -1,0 +1,22 @@
+---
+- name: Validate Kubernetes cluster
+  delegate_to: "{{ groups['rke2_servers'][0] }}"
+  run_once: true
+  block:
+    - name: Check if kubectl is available
+      ansible.builtin.stat:
+        path: "{{ longhorn_kubernetes_config.path }}"
+      register: kube_config
+      failed_when: not kube_config.stat.exists
+
+    - name: Verify cluster access
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ longhorn_kubernetes_config.path }}"
+        kind: Node
+      register: node_status
+      failed_when: node_status.resources | length == 0
+
+    - name: Check if open-iscsi is installed
+      ansible.builtin.package:
+        name: open-iscsi
+        state: present

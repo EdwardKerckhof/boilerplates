@@ -1,0 +1,8 @@
+---
+- name: Clean Longhorn temporary files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/longhorn-values.yaml
+  listen: cleanup temporary files

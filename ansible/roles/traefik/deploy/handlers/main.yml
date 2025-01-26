@@ -1,0 +1,10 @@
+---
+- name: Clean Traefik temporary files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/get-helm.sh
+    - /tmp/traefik-values.yaml
+    - /tmp/default-headers-middleware.yaml
+  listen: cleanup temporary files

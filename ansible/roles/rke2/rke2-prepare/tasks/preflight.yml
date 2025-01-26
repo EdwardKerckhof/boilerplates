@@ -1,0 +1,16 @@
+---
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - groups['rke2_servers'] is defined
+      - groups['rke2_servers'] | length > 0
+      - groups['rke2_agents'] is defined
+    fail_msg: "Required inventory groups are not defined"
+    success_msg: "All required groups are present"
+
+- name: Check system requirements
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= 4096
+      - ansible_processor_vcpus >= 2
+    fail_msg: "System does not meet minimum requirements (4GB RAM, 2 CPUs)"

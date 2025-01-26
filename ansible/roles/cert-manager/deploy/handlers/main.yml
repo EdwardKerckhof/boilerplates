@@ -1,0 +1,10 @@
+---
+- name: Clean cert-manager temporary files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/cert-manager-values.yaml
+    - /tmp/cloudflare-api-token-secret.yaml
+    - /tmp/cluster-issuer.yaml
+  listen: cleanup temporary files

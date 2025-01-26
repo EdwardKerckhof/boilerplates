@@ -1,16 +1,22 @@
 ---
+- name: Run preflight checks
+  ansible.builtin.import_tasks: preflight.yml
+  tags: ["rke2", "preflight"]
+
 # Directory setup
 - name: Create directory for RKE2 config
   ansible.builtin.file:
     path: "/etc/rancher/rke2"
     state: directory
     mode: "0644"
+  tags: ["rke2", "directories"]
 
 - name: Create directory for RKE2 token
   ansible.builtin.file:
     path: "/var/lib/rancher/rke2/server"
     state: directory
     mode: "0644"
+  tags: ["rke2", "directories"]
 
 # Server configuration
 - name: Deploy RKE2 server Configuration
@@ -21,6 +27,7 @@
     group: root
     mode: "0644"
   when: inventory_hostname in groups['rke2_servers']
+  tags: ["rke2", "config"]
 
 # Service setup
 - name: Create systemd service file for RKE2 server
@@ -31,6 +38,7 @@
     group: root
     mode: "0644"
   when: inventory_hostname in groups['rke2_servers']
+  tags: ["rke2", "services"]
 
 - name: Create systemd service file for RKE2 agent
   ansible.builtin.template:
@@ -40,6 +48,7 @@
     group: root
     mode: "0644"
   when: inventory_hostname in groups['rke2_agents']
+  tags: ["rke2", "services"]
 
 # Server initialization
 - name: Ensure RKE2 server is enabled and running
@@ -49,17 +58,20 @@
     state: restarted
     daemon_reload: true
   when: inventory_hostname in groups['rke2_servers'][0]
+  tags: ["rke2", "services"]
 
 # Wait for node token
 - name: Wait for node-token
   ansible.builtin.wait_for:
     path: /var/lib/rancher/rke2/server/node-token
   when: inventory_hostname == groups['rke2_servers'][0]
+  tags: ["rke2", "token"]
 
 - name: Wait for kubectl
   ansible.builtin.wait_for:
     path: /var/lib/rancher/rke2/bin/kubectl
   when: inventory_hostname == groups['rke2_servers'][0]
+  tags: ["rke2", "kubectl"]
 
 # Kubectl setup
 - name: Copy kubectl to user bin
@@ -70,23 +82,27 @@
     remote_src: true
   become: true
   when: inventory_hostname == groups['rke2_servers'][0]
+  tags: ["rke2", "kubectl"]
 
 - name: Wait for kubectl
   ansible.builtin.wait_for:
     path: /usr/local/bin/kubectl
   when: inventory_hostname == groups['rke2_servers'][0]
+  tags: ["rke2", "kubectl"]
 
 # Token handling
 - name: Register node-token file access mode
   ansible.builtin.stat:
     path: /var/lib/rancher/rke2/server
   register: p
+  tags: ["rke2", "token"]
 
 - name: Change file access for node-token
   ansible.builtin.file:
     path: /var/lib/rancher/rke2/server
     mode: "g+rx,o+rx"
   when: inventory_hostname == groups['rke2_servers'][0]
+  tags: ["rke2", "token"]
 
 - name: Fetch the token from the first server node
   ansible.builtin.slurp:
@@ -94,16 +110,19 @@
   register: rke2_token
   when: inventory_hostname == groups['rke2_servers'][0]
   run_once: true
+  tags: ["rke2", "token"]
 
 - name: Save Master node-token for later
   ansible.builtin.set_fact:
     token: "{{ rke2_token.content | b64decode | regex_replace('\n', '') }}"
+  tags: ["rke2", "token"]
 
 - name: Restore node-token file access
   ansible.builtin.file:
     path: /var/lib/rancher/rke2/server
     mode: "{{ p.stat.mode }}"
   when: inventory_hostname == groups['rke2_servers'][0]
+  tags: ["rke2", "token"]
 
 # Kubectl config setup
 - name: Ensure .kube directory exists in user's home
@@ -112,6 +131,7 @@
     state: directory
     mode: "0755"
   become: true
+  tags: ["rke2", "kubectl"]
 
 - name: Copy config file to user home directory
   ansible.builtin.copy:
@@ -121,6 +141,8 @@
     owner: "{{ ansible_user }}"
     mode: "u=rw,g=,o="
   when: inventory_hostname == groups['rke2_servers'][0]
+  notify: Clean temporary files
+  tags: ["rke2", "kubectl"]
 
 - name: Replace IP address with server1
   ansible.builtin.replace:
@@ -128,3 +150,4 @@
     regexp: "127.0.0.1"
     replace: "{{ hostvars['server-01']['ansible_host'] }}"
   when: inventory_hostname == groups['rke2_servers'][0]
+  tags: ["rke2", "kubectl"]

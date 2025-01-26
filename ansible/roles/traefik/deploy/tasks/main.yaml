@@ -1,4 +1,8 @@
 ---
+- name: Run preflight checks
+  ansible.builtin.import_tasks: preflight.yml
+  tags: ["traefik", "preflight"]
+
 - name: Deploy and configure Traefik
   delegate_to: "{{ groups['rke2_servers'][0] }}"
   run_once: true
@@ -8,6 +12,7 @@
         url: "{{ traefik_helm_config.install_script_url }}"
         dest: /tmp/get-helm.sh
         mode: "0700"
+      notify: cleanup temporary files
       tags:
         - traefik
         - helm
@@ -33,6 +38,7 @@
         src: templates/traefik-values.yaml.j2
         dest: /tmp/traefik-values.yaml
         mode: "0644"
+      notify: cleanup temporary files
       tags:
         - traefik
         - deploy
@@ -57,6 +63,7 @@
         src: templates/default-headers-middleware.yaml.j2
         dest: /tmp/default-headers-middleware.yaml
         mode: "0644"
+      notify: cleanup temporary files
       tags:
         - traefik
         - middleware

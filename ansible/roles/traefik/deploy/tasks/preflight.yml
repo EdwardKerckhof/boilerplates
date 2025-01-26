@@ -1,0 +1,23 @@
+---
+- name: Validate deployment prerequisites
+  delegate_to: "{{ groups['rke2_servers'][0] }}"
+  run_once: true
+  block:
+    - name: Verify cluster access
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubernetes.config_path }}"
+        kind: Namespace
+        name: "{{ traefik.namespace }}"
+      register: namespace_check
+      failed_when: false
+
+    - name: Check if namespace already exists
+      ansible.builtin.fail:
+        msg: "Namespace {{ traefik.namespace }} already exists"
+      when: namespace_check.resources | length > 0 and not traefik.force_deploy | default(false)
+
+    - name: Verify kubeconfig exists
+      ansible.builtin.stat:
+        path: "{{ kubernetes.config_path }}"
+      register: kube_config
+      failed_when: not kube_config.stat.exists

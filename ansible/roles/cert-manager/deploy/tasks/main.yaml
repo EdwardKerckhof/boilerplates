@@ -16,6 +16,7 @@
         src: templates/cert-manager-values.yaml.j2
         dest: /tmp/cert-manager-values.yaml
         mode: "0644"
+      notify: cleanup temporary files
       tags:
         - cert-manager
         - deploy
@@ -40,6 +41,7 @@
         src: templates/cloudflare-api-token-secret.yaml.j2
         dest: /tmp/cloudflare-api-token-secret.yaml
         mode: "0644"
+      notify: cleanup temporary files
       tags:
         - cert-manager
         - secret
@@ -49,6 +51,7 @@
         src: templates/cluster-issuer.yaml.j2
         dest: /tmp/cluster-issuer.yaml
         mode: "0644"
+      notify: cleanup temporary files
       tags:
         - cert-manager
         - issuer
