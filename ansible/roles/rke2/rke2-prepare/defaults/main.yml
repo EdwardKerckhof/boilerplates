@@ -17,7 +17,3 @@ rke2_config:
 rke2_node_labels:
   server: "server=true"
   agent: "agent=true"
-
-rke2_file_permissions:
-  default_mode: "0644"
-  executable_mode: "0755"

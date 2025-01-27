@@ -13,9 +13,9 @@
     - name: Execute Helm installer
       ansible.builtin.command:
         cmd: /tmp/get-helm.sh
-        creates: "{{ helm.binary_path }}"
+        creates: "{{ traefik_helm_config.binary_path }}"
 
     - name: Add Traefik Helm repository
       kubernetes.core.helm_repository:
-        name: "{{ traefik.helm.repo_name }}"
-        repo_url: "{{ traefik.helm.repo_url }}"
+        name: "{{ traefik_helm_config.repo_name }}"
+        repo_url: "{{ traefik_helm_config.repo_url }}"

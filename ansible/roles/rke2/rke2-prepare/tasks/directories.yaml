@@ -1,19 +1,19 @@
 ---
 - name: Create directory for RKE2 config
   ansible.builtin.file:
-    path: "/etc/rancher/rke2"
+    path: "{{ rke2_config.config.dir }}"
     state: directory
-    mode: "0644"
+    mode: "{{ rke2_file_permissions.default_mode }}"
 
 - name: Create directory for RKE2 token
   ansible.builtin.file:
-    path: "/var/lib/rancher/rke2/server"
+    path: "{{ rke2_config.server.dir }}"
     state: directory
-    mode: "0644"
+    mode: "{{ rke2_file_permissions.default_mode }}"
 
 - name: Ensure .kube directory exists in user's home
   ansible.builtin.file:
     path: "/home/{{ ansible_user }}/.kube"
     state: directory
-    mode: "0755"
+    mode: "{{ rke2_file_permissions.executable_mode }}"
   become: true

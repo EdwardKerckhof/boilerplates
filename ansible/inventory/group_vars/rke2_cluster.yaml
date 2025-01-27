@@ -4,9 +4,25 @@ arch: "amd64"
 
 vip: 10.8.8.50
 ip_range: 10.8.8.60-10.8.8.90
-################################################################################
-# options to change default values
-# kube_vip_version: "v0.8.9"
-# vip_interface: "eth0"
-# rke2_version: "v1.29.4+rke2r1"
-# rke2_install_dir: "/usr/local/bin"
+
+rke2_config:
+  config:
+    dir: /etc/rancher/rke2
+    mode: "0644"
+  server:
+    dir: /var/lib/rancher/rke2/server
+    service_name: rke2-server
+  agent:
+    service_name: rke2-agent
+  kubectl:
+    bin_path: /usr/local/bin/kubectl
+    config_dir: "/home/{{ ansible_user }}/.kube"
+    config_mode: "u=rw,g=,o="
+
+# Common Kubernetes configurations
+rke2_kubernetes_config: /home/{{ ansible_user }}/.kube/config
+
+# Common file permissions
+rke2_file_permissions:
+  default_mode: "0644"
+  executable_mode: "0755"
