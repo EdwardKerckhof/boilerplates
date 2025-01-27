@@ -64,3 +64,6 @@ terraform.*
 .DS_Store
 
 .vault_pass*
+*.dec.yaml
+*secret.yaml
+!sealed-*secret.yaml
